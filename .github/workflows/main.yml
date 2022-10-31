@@ -1,0 +1,35 @@
+name: DevCard
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  devcard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: devcard
+        uses: dailydotdev/action-devcard@2.0.6
+        with:
+          devcard_id: ${{ secrets.DEVCARD_ID }}
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: optimizeSVG
+        run: |-
+          ls -lha ${{ github.workspace }}/devcard.svg
+          npx -y -p svgo svgo ${{ github.workspace }}/devcard.svg
+          ls -lha ${{ github.workspace }}/devcard.svg
+          git config --global user.email "luca.guzzon@gmail.com"
+          git config --global user.name "Luca Guzzon"
+          cd ${{ github.workspace }}; git commit -a --amend --no-edit
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          force: true
